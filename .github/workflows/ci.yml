@@ -1,0 +1,39 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+    - name: Install root dependencies
+      run: npm install
+    - name: Install UI dependencies
+      run: |
+        cd packages/ui
+        npm install
+    - name: Start server
+      run: |
+        cd packages/ui/test/plugin
+        npm install
+        node server.js -sh https://eye.projectalita.ai -spid 1396 -muid 596884aa-fc90-4e19-8de0-8ef90fa5a9b6 -st eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiOGRkYmQwYjYtY2Q5Mi00NWE2LWIyNDItZjZjYmZmNjVmYWU5IiwiZXhwaXJlcyI6IjIwMjQtMTItMTZUMTQ6NDAifQ.TZOE1GCJ4W8_mok0Aen9sP1Y89xUs7sr6U7iO7CiX-1Ow4k-JTmnr3HfXFY06QgJvN7-KpiZoQSU-qBYpDVfkA &
+    - name: Start chat/webpack run
+      run: |
+        cd packages/ui
+        npx webpack serve --mode development --env plugin=http://localhost:3333 &
+    - name: Install test dependencies and run tests
+      run: |
+        cd packages/ui/test/ui_test
+        npm install
+        npx playwright install
+        npm test
+    # - name: Run ESLint
+    #   run: npm run lint

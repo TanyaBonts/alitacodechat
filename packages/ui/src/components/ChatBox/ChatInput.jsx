@@ -372,6 +372,7 @@ const ChatInput = forwardRef(function ChatInput(props, ref) {
           <SendButton
             disabled={disabledSend || !question}
             onClick={onEnterDown}
+            data-testid="Sendbutton"
             aria-label="send your question">
             <SendIcon sx={{ fontSize: 18, fill: 'icon.fill.send' }} />
           </SendButton>

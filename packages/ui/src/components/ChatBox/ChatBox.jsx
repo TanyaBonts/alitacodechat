@@ -489,6 +489,7 @@ const ChatBox = forwardRef(({
               onRefresh={loadCoreData}
             />
             <ActionButton
+              data-testid="ClearTheChat"
               aria-label="clear the chat"
               disabled={isLoading || isStreaming || !chatHistory.length}
               onClick={onClickClearChat}
