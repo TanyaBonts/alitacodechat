@@ -1,0 +1,19 @@
+{
+  "name": "ui-tests",
+  "version": "1.0.0",
+  "description": "UI tests for Alita chat",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "npx playwright test"
+  },
+  "author": "tatiana_bontsevich@epam.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "esm": "^3.2.25"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.48.2"
+  }
+}

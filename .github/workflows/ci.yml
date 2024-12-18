@@ -1,0 +1,43 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install root dependencies
+      run: npm install
+    - name: Install UI dependencies
+      run: |
+        cd packages/ui
+        npm install
+    - name: Start server
+      run: |
+        cd packages/ui/test/plugin
+        npm install
+        node server.js -sh https://eye.projectalita.ai -spid 1396 -muid 596884aa-fc90-4e19-8de0-8ef90fa5a9b6 -st eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiOTJkNmRjM2MtNTRmNi00NWI0LWFhM2MtNGNiZjM0MjkzMWFlIiwiZXhwaXJlcyI6IjIwMjUtMDEtMTVUMTQ6NTAifQ.N-wISbLTwvd89-mvqqdxlbNrFJj9CvM3KgmH58idf44OIe9wl1xt_7GzWCpgpOgjKlASdsjLKiQy4gIHCVVvMg &
+    - name: Start chat/webpack run
+      run: |
+        cd packages/ui
+        npx webpack --env plugin=http://localhost:3333 &
+    - name: Install test dependencies and run tests
+      run: |
+        cd packages/ui/test/ui_test
+        npm install
+        npx playwright install
+        npm test
+    - name: Upload test results on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: failed-test-results
+        path: packages/ui/test/ui_test/test-results/
