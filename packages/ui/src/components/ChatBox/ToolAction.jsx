@@ -14,7 +14,7 @@ import NormalRoundButton from '@/components/NormalRoundButton';
 import { ToolActionStatus } from '@/common/constants';
 import StyledTooltip from '../Tooltip';
 import CopyIcon from '@/components/Icons/CopyIcon';
-import useToast from '@/components/useToast';
+import useToast from '../useToast';
 import Markdown from "@/components/Markdown.jsx";
 import Button from '@/components/Button';
 import { styled } from '@mui/material/styles';
@@ -53,8 +53,11 @@ const Status = ({ status }) => {
   }
 }
 
+const CONTENT_STEP_LEN = 1024
+
 export default function ToolAction({ showMode = AccordionShowMode.RightMode, defaultExpanded = false, action }) {
   const [result, setResult] = useState()
+  const [displayContentLen, setDisplayContentLen] = useState(CONTENT_STEP_LEN)
   const {ToastComponent: Toast, toastInfo} = useToast();
   const [expanded, setExpanded] = useState(defaultExpanded)
   const theme = useTheme();
@@ -89,6 +92,9 @@ export default function ToolAction({ showMode = AccordionShowMode.RightMode, def
   const onExpanded = useCallback(
     (_, value) => {
       setExpanded(value);
+      if (!value) {
+        setDisplayContentLen(CONTENT_STEP_LEN)
+      }
     },
     [],
   )
@@ -100,7 +106,28 @@ export default function ToolAction({ showMode = AccordionShowMode.RightMode, def
     },
     [action.query, toastInfo],
   )
-
+  
+  const onShowMore = useCallback(
+    () => {
+      setDisplayContentLen(prev => prev + CONTENT_STEP_LEN)
+    },
+    [],
+  )
+  
+  const onShowLess = useCallback(
+    () => {
+      setDisplayContentLen(CONTENT_STEP_LEN)
+    },
+    [],
+  )
+  
+  const onShowAll = useCallback(
+    () => {
+      setDisplayContentLen(action.content?.length)
+    },
+    [action.content?.length],
+  )
+  
   useEffect(() => {
     if (action.status === ToolActionStatus.actionRequired || action.status === ToolActionStatus.error) {
       setExpanded(true);
@@ -140,6 +167,7 @@ export default function ToolAction({ showMode = AccordionShowMode.RightMode, def
         sx={{
           paddingBottom: '16px',
           paddingLeft: '12px',
+          paddingRight: '12px',
           gap: '12px'
         }}
       >
@@ -152,10 +180,35 @@ export default function ToolAction({ showMode = AccordionShowMode.RightMode, def
             <Divider sx={{mb: 5}} variant={"fullWidth"}/>
           </>
         }
-
-        <Markdown>
-          {action.content}
-        </Markdown>
+        <Box sx={{ overflowWrap: 'break-word', whiteSpace: 'pre-wrap'}}>
+          {action.content?.slice(0, displayContentLen)}
+        </Box>
+        {action.content?.length > CONTENT_STEP_LEN &&
+          <Box marginTop='8px' marginBottom='10px' display='flex' justifyContent='flex-end' gap='16px'>
+            { displayContentLen < action.content?.length &&
+              <Typography onClick={onShowAll} variant='bodySmall' sx={{ color: theme.palette.text.button.showMore, cursor: 'pointer' }}>
+                Show all
+              </Typography>
+            }
+            {displayContentLen > CONTENT_STEP_LEN &&
+              <Typography onClick={onShowLess} variant='bodySmall' sx={{ color: theme.palette.text.button.showMore, cursor: 'pointer' }}>
+                Show less
+              </Typography>
+            }
+            <Typography
+              onClick={displayContentLen < action.content?.length ? onShowMore : null}
+              variant='bodySmall'
+              sx={{
+                color: displayContentLen < action.content?.length ?
+                  theme.palette.text.button.showMore :
+                  theme.palette.text.button.disabled,
+                cursor: displayContentLen < action.content?.length ? 'pointer' : 'default'
+              }}
+            >
+              Show more...
+            </Typography>
+          </Box>
+        }
         {
           action.status === 'action_required' &&
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

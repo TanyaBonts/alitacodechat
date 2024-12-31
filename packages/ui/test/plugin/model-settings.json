@@ -1,6 +1,6 @@
 {
   "model": {
-    "model_name": "gpt-35-turbo"
+    "model_name": "gpt-4o"
   },
   "temperature": 0.8,
   "max_tokens": 4096,

@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import { ROLES, sioEvents, SocketMessageType, ChatTypes, ToolActionStatus } from '@/common/constants';
 import { VsCodeMessageTypes } from 'shared';
-import { buildErrorMessage } from '@/common/utils';
+import { buildErrorMessage, convertJsonToString } from '@/common/utils';
 import { forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
 import AlertDialog from '../AlertDialog';
 import AIAnswer from './AIAnswer';
@@ -24,10 +24,78 @@ import ClearIcon from '../Icons/ClearIcon';
 import DataContext from '@/context/DataContext';
 import ApplicationAnswer from './ApplicationAnswer';
 import useToast from "@/components/useToast.jsx";
+import { useInteractionUUID } from "@/components/ChatBox/useMonitorOnCopyEvent.js";
 
 const USE_STREAM = true
 const MESSAGE_REFERENCE_ROLE = 'reference'
 
+export const generateApplicationPayload = ({
+                                             projectId, application_id, instructions, temperature,
+                                             max_tokens, top_p, top_k, model_name, integration_uid,
+                                             variables, tools, name, currentVersionId, question_id
+                                           }) => ({
+  application_id,
+  user_name: name,
+  project_id: projectId,
+  version_id: currentVersionId,
+  instructions,
+  llm_settings: {
+    temperature,
+    max_tokens,
+    top_p,
+    top_k,
+    model_name,
+    integration_uid,
+  },
+  variables: variables ? variables.map((item) => {
+    const {key, name: variableName, value} = item;
+    return {
+      name: variableName || key,
+      value,
+    }
+  }) : [],
+  tools,
+  question_id,
+})
+
+export const generateApplicationStreamingPayload = ({
+                                                      projectId,
+                                                      application_id,
+                                                      instructions,
+                                                      temperature,
+                                                      max_tokens,
+                                                      top_p,
+                                                      top_k,
+                                                      model_name,
+                                                      integration_uid,
+                                                      variables,
+                                                      question,
+                                                      tools,
+                                                      chatHistory,
+                                                      name,
+                                                      currentVersionId,
+                                                      question_id,
+                                                      interaction_uuid,
+                                                    }) => {
+  const payload = generateApplicationPayload({
+    projectId, application_id, instructions, temperature,
+    max_tokens, top_p, top_k, model_name, integration_uid,
+    variables, tools, name, currentVersionId, question_id
+  })
+  payload.thread_id = chatHistory?.at(-1)?.threadId
+  payload.chat_history = chatHistory ? chatHistory.map((message) => {
+    const {role, content, name: userName} = message;
+    if (userName) {
+      return {role, content, name: userName};
+    } else {
+      return {role, content}
+    }
+  }) : []
+  payload.user_input = question
+  payload.question_id = question_id
+  payload.interaction_uuid = interaction_uuid
+  return payload
+}
 
 const getDefaultModel = (model = {}, modelsList) => {
   const { model_name = '', integration_uid = '' } = model;
@@ -73,7 +141,7 @@ const generatePayload = ({
 })
 
 const generateChatPayload = ({
-  projectId, prompt_id, question, messages, variables, chatHistory, name, currentVersionId, model_settings
+  projectId, prompt_id, question, messages, variables, chatHistory, name, currentVersionId, model_settings, interaction_uuid
 }) => {
   const payload = generatePayload({
     projectId, prompt_id, type: 'chat', variables, name, currentVersionId, model_settings
@@ -90,6 +158,7 @@ const generateChatPayload = ({
   if (messages) {
     payload.messages = messages
   }
+  payload.interaction_uuid = interaction_uuid;
   return payload
 }
 
@@ -99,7 +168,7 @@ const ChatBox = forwardRef(({
   const {
     ToastComponent,
     toastError,
-    toastSuccess
+    toastInfo,
   } = useToast();
   const {
     isLoading,
@@ -116,15 +185,17 @@ const ChatBox = forwardRef(({
 
   const [isRegenerating, setIsRegenerating] = useState(false);
   const chatHistoryRef = useRef(chatHistory);
-  const [chatWith, setChatWith] = useState('')
-  const [participant, setParticipant] = useState(null)
-  const participantRef = useRef(participant)
+  const [chatWith, setChatWith] = useState('');
+  const [participant, setParticipant] = useState(null);
+  const participantRef = useRef(participant);
+  const chatWithRef = useRef(chatWith);
+  
+  const { interaction_uuid } = useInteractionUUID();
 
   useEffect(() => {
     participantRef.current = participant
   }, [participant])
 
-  const chatWithRef = useRef(chatWith)
 
   useEffect(() => {
     chatWithRef.current = chatWith
@@ -231,6 +302,7 @@ const ChatBox = forwardRef(({
         if (response_metadata?.finish_reason) {
           msg.isStreaming = false
         }
+        msg.threadId = response_metadata?.thread_id
         break
       case SocketMessageType.AgentLlmChunk:
         t = msg.toolActions.find(i => i.id === message?.response_metadata?.tool_run_id)
@@ -266,8 +338,17 @@ const ChatBox = forwardRef(({
         t = msg.toolActions.find(i => i.id === message?.response_metadata?.tool_run_id)
         if (t) {
           Object.assign(t, {
-            content: message?.content,
+            content: convertJsonToString(message?.content ?? ''),
             status: ToolActionStatus.complete
+          })
+        }
+        break
+      case SocketMessageType.AgentToolError:
+        t = msg.toolActions?.find(i => i.id === message?.response_metadata?.tool_run_id)
+        if (t) {
+          Object.assign(t, {
+            content: convertJsonToString(message?.content ?? ''),
+            status: ToolActionStatus.error
           })
         }
         break
@@ -358,7 +439,9 @@ const ChatBox = forwardRef(({
         role: ROLES.User,
         name,
         content: question,
-        created_at: new Date()
+        created_at: new Date(),
+        participant_id: participantRef.current?.id,
+        sentTo: participantRef.current ?? {}
       }]
     })
 
@@ -378,12 +461,17 @@ const ChatBox = forwardRef(({
         toastError('Application chat model is missing. Please select another one for chat.');
         return
       }
-      emit({
+      const payload = generateApplicationStreamingPayload({
         ...data,
-        project_id: projectId,
-        user_input: question,
-        chat_history: chatHistory.filter(i => i.role !== MESSAGE_REFERENCE_ROLE).concat(messages),
+        ...data.llm_settings,
+        projectId,
+        question,
+        name,
+        chatHistory,
+        interaction_uuid
       })
+
+      emit(payload)
       return
     } else if (data.datasource_id) {
       if (!data.chat_settings_ai?.integration_uid ||
@@ -398,7 +486,8 @@ const ChatBox = forwardRef(({
         chat_history: chatHistory.filter(i => i.role !== MESSAGE_REFERENCE_ROLE).concat(messages),
         context: data.context,
         chat_settings_ai: data.chat_settings_ai,
-        chat_settings_embedding: data.chat_settings_embedding
+        chat_settings_embedding: data.chat_settings_embedding,
+        interaction_uuid
       })
       return
     } else {
@@ -407,7 +496,8 @@ const ChatBox = forwardRef(({
         question,
         chatHistory,
         name,
-        messages
+        messages,
+        interaction_uuid
       }
       if (data.prompt_id && data.currentVersionId) {
         payloadData.prompt_id = data.prompt_id
@@ -433,7 +523,7 @@ const ChatBox = forwardRef(({
       emit(payload)
     }
   },
-    [scrollToMessageListEnd, dataContext, setChatHistory, emit, chatHistory, deployments, error, toastError])
+    [scrollToMessageListEnd, dataContext, setChatHistory, emit, chatHistory, deployments, error, toastError, interaction_uuid])
 
   const onSend = useCallback(
     (data) => {
@@ -469,11 +559,20 @@ const ChatBox = forwardRef(({
     (id) => async () => {
       const message = chatHistory.find(item => item.id === id);
       if (message) {
-        await navigator.clipboard.writeText(message.content);
-        toastSuccess('The message has been copied to the clipboard');
+        if (message.exception) {
+          try {
+            await navigator.clipboard.writeText(JSON.stringify(message.exception));
+            toastInfo('The exception has been copied to the clipboard');
+          } catch (e) {
+            toastError('Failed to copy the exception!');
+          }
+        } else {
+          await navigator.clipboard.writeText(message.content);
+          toastInfo('The message has been copied to the clipboard');
+        }
       }
     },
-    [chatHistory, toastSuccess],
+    [chatHistory, toastInfo, toastError],
   );
 
   return (
@@ -489,6 +588,7 @@ const ChatBox = forwardRef(({
               onRefresh={loadCoreData}
             />
             <ActionButton
+              data-testid="ClearTheChatButton"
               aria-label="clear the chat"
               disabled={isLoading || isStreaming || !chatHistory.length}
               onClick={onClickClearChat}
@@ -527,6 +627,7 @@ const ChatBox = forwardRef(({
                     isLoading={Boolean(message.isLoading)}
                     isStreaming={message.isStreaming}
                     created_at={message.created_at}
+                    interaction_uuid={interaction_uuid}
                   />
                   :
                   <ApplicationAnswer
@@ -544,6 +645,7 @@ const ChatBox = forwardRef(({
                     isLoading={Boolean(message.isLoading)}
                     isStreaming={message.isStreaming}
                     created_at={message.created_at}
+                    interaction_uuid={interaction_uuid}
                   />
             })
           }

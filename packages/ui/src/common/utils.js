@@ -59,3 +59,16 @@ export const buildErrorMessage = (err) => {
 };
 
 export const removeTrailingSlashes = str => str.replace(/\/*$/, "");
+
+export const convertJsonToString = (content) => {
+  let result = content;
+  if (typeof content !== 'string') {
+    try {
+      result = JSON.stringify(content, null, 2);
+    } catch (_) {
+      result = '' + content;
+    }
+  }
+
+  return result;
+}

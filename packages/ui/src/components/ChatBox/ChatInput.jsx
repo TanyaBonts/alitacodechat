@@ -304,7 +304,7 @@ const ChatInput = forwardRef(function ChatInput(props, ref) {
             <Typography variant='labelSmall'>{selectedOption?.name}</Typography>
             {configurable &&
               <StyledTooltip title={'Settings'} placement="top">
-                <ActionButton onClick={openVariableDialog}>
+                <ActionButton data-testid="SettingsButton" onClick={openVariableDialog}>
                   <SettingIcon sx={{ fontSize: '1.13rem' }} color="icon" />
                 </ActionButton>
               </StyledTooltip>}
@@ -372,6 +372,7 @@ const ChatInput = forwardRef(function ChatInput(props, ref) {
           <SendButton
             disabled={disabledSend || !question}
             onClick={onEnterDown}
+            data-testid="SendButton"
             aria-label="send your question">
             <SendIcon sx={{ fontSize: 18, fill: 'icon.fill.send' }} />
           </SendButton>
