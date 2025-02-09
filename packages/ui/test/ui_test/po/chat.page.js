@@ -9,16 +9,20 @@ export default class ChatPage {
     this.chatArea = page.locator('.MuiList-root');
     this.chatAreaUserMessage = page.locator('ul li:nth-child(1)>div:nth-child(2)');
     this.chatAreaAnswer = page.locator('.MuiList-root > li:nth-child(2) > div:nth-child(2) span');
-    this.chatAreaPromptResult = page.locator('ul li:nth-child(2)>div:nth-child(2)');
+    
     this.refreshButton = page.locator('[data-testid="RefreshOutlinedIcon"]');
     this.scrollDownArrow = page.locator('[data-testid="KeyboardDoubleArrowDownOutlinedIcon"]');
     this.cleanChatButton = page.locator('[data-testid="ClearTheChatButton"]');
     this.chatCommandAutocomplete = page.locator('div.MuiPaper-root ul');
+
     this.promptModalHeader = page.locator('#alert-dialog-title:nth-child(1)');
+    this.promptModalVersion = page.locator('#simple-select-undefined');
+    this.promptModalVersionList = page.locator('ul[role="listbox"]');
     this.promptModalVariablesHeader = page.locator('#alert-dialog-title:nth-child(3)');
     this.promptModalVariable = page.locator('.MuiDialogContent-root .MuiInputBase-root textarea[aria-invalid="false"]');
     this.promptModalOkBtn = page.locator('button.MuiButton-root[type="button"]')
-    this.promptSettingsOpenVariableModal = page.locator('[data-testid="SettingsButton"]');
+
+    this.promptSettings = page.locator('[data-testid="SettingsButton"]');
     this.chosenPromptName = page.locator('//button[@data-testid="SettingsButton"]/preceding-sibling::span');
     this.serverError = page.locator('#webpack-dev-server-client-overlay');
     this.alertError = page.locator('svg[data-testid="ErrorOutlineIcon"]');
@@ -32,6 +36,10 @@ export default class ChatPage {
     this.deleteMsgBtn = page.locator('[aria-label="Delete"]');
   }
   
+  getChatPromptResult(index) {
+    return this.page.locator(`ul li:nth-child(${index})>div:nth-child(2)`);
+  }
+
   async openChat() {
     const relativePath = '../../dist-webpack/index.html';
     const absolutePath = path.resolve(relativePath);
@@ -39,7 +47,7 @@ export default class ChatPage {
   }
 
   async typeInMessageField(text) {
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(3000);
     await this.page.keyboard.type(text);
   }
 
@@ -72,12 +80,12 @@ export default class ChatPage {
   }
 
   async verifyChosenPrompt(promptName) {
-    await expect(this.promptSettingsOpenVariableModal).toBeVisible();
+    await expect(this.promptSettings).toBeVisible();
     await expect(this.chosenPromptName).toHaveText(promptName);
   }
 
   async verifySettingsOpenPromptModal() {
-    await this.promptSettingsOpenVariableModal.click();
+    await this.promptSettings.click();
     await this.promptModalHeader.waitFor();
     await expect(this.promptModalHeader).toBeVisible();
   }
@@ -86,14 +94,16 @@ export default class ChatPage {
     await expect(this.promptModalHeader).not.toBeVisible();
   }
 
-  async sendMessage() {
+  async sendMessage(text) {
+    await this.typeInMessageField(text);
     await this.sendButton.click();
-    await this.page.waitForTimeout(500)
+    await this.page.waitForTimeout(1000);
   }
 
-  async verifyChatPromptResultExists() {
-    await this.chatAreaPromptResult.waitFor();
-    await expect(this.chatAreaPromptResult).toBeVisible();
+  async verifyChatPromptResultExists(index) {
+    const chatResult = this.getChatPromptResult(index);
+    await chatResult.waitFor();
+    await expect(chatResult).toBeVisible();
   }
 
   async verifyErrorIsNotDisplayed() {
@@ -123,9 +133,10 @@ export default class ChatPage {
     }
   }
 
-  async verifyDeleteMessageBtnAndClick(tooltipText) {
-    await this.chatAreaPromptResult.waitFor();
-    await this.chatAreaPromptResult.hover();
+  async verifyDeleteMessageBtnAndClick(index, tooltipText) {
+    const chatResult = this.getChatPromptResult(index);
+    await chatResult.waitFor();
+    await chatResult.hover();
     await this.deleteMsgBtn.hover();
     await expect(this.tooltip).toHaveText(tooltipText);
     await this.deleteMsgBtn.click();
@@ -143,17 +154,39 @@ export default class ChatPage {
     await this.alertToDeleteMsgBtnConfirm.click();
   }
 
-  async verifyMessageIsDeleted() {
-    await expect(this.chatAreaPromptResult).not.toBeVisible();
+  async verifyMessageIsDeleted(index) {
+    const chatResult = this.getChatPromptResult(index);
+    await expect(chatResult).not.toBeVisible();
   }
 
   async verifyChatIsCleaned() {
     await expect(this.chatAreaUserMessage).not.toBeVisible();
-    await expect(this.chatAreaPromptResult).not.toBeVisible();
+    await expect(this.chatAreaAnswer).not.toBeVisible();
   }
 
   async clickCleanChatBtn() {
     await this.chatAreaAnswer.waitFor();
     await this.cleanChatButton.click();
+  }
+
+  async verifyDisplayedVersion(versionName) {
+    await expect(this.promptModalVersion).toHaveText(versionName);
+  }
+
+  async chooseVersion(versionName) {
+    const versionLocator = this.promptModalVersionList.locator(`li >> text=${versionName}`);
+    await this.promptModalVersion.click();
+    await versionLocator.waitFor();
+    await versionLocator.click();
+  }
+
+  async verifyPromptModalVariableName(index, variable) {
+    await expect(this.promptModalVariable.nth(index)).toHaveAttribute('id', variable);
+  }
+
+  async verifyChatPromptResultContent(index, resultText) {
+    const chatResult = this.getChatPromptResult(index);
+    await chatResult.waitFor();
+    await expect(chatResult).toContainText(resultText);
   }
 }

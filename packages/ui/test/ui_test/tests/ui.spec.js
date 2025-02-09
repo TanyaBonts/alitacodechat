@@ -16,8 +16,7 @@ test.describe('UI tests', () => {
   test('Verify user can type any message and receive answer', async ({ page }) => {
     const chatPage = new ChatPage(page);
     await chatPage.openChat();
-    await chatPage.typeInMessageField('hello');
-    await chatPage.sendMessage();
+    await chatPage.sendMessage('hello');
     await chatPage.verifyErrorAlertNotDisplayed();
     await expect(chatPage.chatAreaAnswer).toBeVisible();
   });
@@ -34,7 +33,7 @@ test.describe('UI tests', () => {
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
     await chatPage.checkAutocompleteOptions([
-      'Creating a JS class in Playwright',
+      'Calculation',
       'Test Cases Generator',
       'Adviser'
     ]);
@@ -85,30 +84,56 @@ test.describe('UI tests', () => {
     await chatPage.chooseAutocompleteOption('Test Cases Generator');
     await chatPage.applyPrompt();
     await expect(chatPage.sendButton).toBeDisabled();
-    await chatPage.typeInMessageField('start');
-    await chatPage.sendMessage();
-    await chatPage.verifyChatPromptResultExists();
+    await chatPage.sendMessage('start');
+    await chatPage.verifyChatPromptResultExists(2);
   });
 
   test('Verify user can delete one answer', async ({ page }) => {
     const chatPage = new ChatPage(page);
     await chatPage.openChat();
-    await chatPage.typeInMessageField('start');
-    await chatPage.sendMessage();
-    await chatPage.verifyDeleteMessageBtnAndClick('Delete');
+    await chatPage.sendMessage('start');
+    await chatPage.verifyDeleteMessageBtnAndClick(2, 'Delete');
     await chatPage.checkDeleteMessageAlertComponents(`The deleted message can't be restored. Are you sure to delete the message?`);
     await chatPage.confirmDeleteMessage();
-    await chatPage.verifyMessageIsDeleted();
+    await chatPage.verifyMessageIsDeleted(2);
   });
 
   test('Verify user can clean the chat', async ({ page }) => {
     const chatPage = new ChatPage(page);
     await chatPage.openChat();
-    await chatPage.typeInMessageField('start');
-    await chatPage.sendMessage();
+    await chatPage.sendMessage('start');
     await chatPage.clickCleanChatBtn();
     await chatPage.checkDeleteMessageAlertComponents(`The deleted messages can't be restored. Are you sure to delete all the messages?`);
     await chatPage.confirmDeleteMessage();
     await chatPage.verifyChatIsCleaned();
+  });
+
+  test('Verify prompt versioning', async ({ page }) => {
+    const chatPage = new ChatPage(page);
+    await chatPage.openChat();
+    await chatPage.typeInMessageField('/');
+    await chatPage.chooseAutocompleteOption('Calculation');
+    await chatPage.checkPromptModalComponents('Calculation');
+    await chatPage.verifyDisplayedVersion('latest');
+    await chatPage.chooseVersion('1.1');
+    await chatPage.verifyDisplayedVersion('1.1');
+    await chatPage.verifyPromptModalVariableName(0, 'a');
+    await chatPage.verifyPromptModalVariableName(1, 'b');
+    await chatPage.changePromptModalVariable(0,'10');
+    await chatPage.changePromptModalVariable(1,'5');
+    await chatPage.applyPrompt();
+    await chatPage.sendMessage('result is?');
+    await chatPage.verifyChatPromptResultContent(2, '15');
+    await chatPage.promptSettings.click();
+    await chatPage.chooseVersion('2.1');
+    await chatPage.verifyDisplayedVersion('2.1');
+    await chatPage.verifyPromptModalVariableName(0, 'c');
+    await chatPage.verifyPromptModalVariableName(1, 'd');
+    await chatPage.changePromptModalVariable(0,'10');
+    await chatPage.changePromptModalVariable(1,'5');
+    await chatPage.applyPrompt();
+    await chatPage.messageField.click();
+    await chatPage.sendMessage('result is?');
+    await chatPage.verifyChatPromptResultContent(4, '5');
   });
 });
