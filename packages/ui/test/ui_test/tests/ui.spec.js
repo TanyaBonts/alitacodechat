@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import ChatPage from '../po/chat.page';
+import ModalComponents from '../po/modal.components';
 
 test.describe('UI tests', () => {
   test('main elements should be visible', async ({ page }) => {
@@ -62,27 +63,29 @@ test.describe('UI tests', () => {
 
   test('Verify prompt pop-up appears with possibility to change variables', async ({ page }) => {
     const chatPage = new ChatPage(page);
+    const modalComponents = new ModalComponents(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
     await chatPage.chooseAutocompleteOption('Test Cases Generator');
-    await chatPage.checkPromptModalComponents('Test Cases Generator');
-    await chatPage.changePromptModalVariable(1,'As a registered user, I want to log into my account using my email and password');
-    await chatPage.applyPrompt();
+    await modalComponents.checkPromptModalComponents('Test Cases Generator');
+    await modalComponents.changePromptModalVariable(1,'As a registered user, I want to log into my account using my email and password');
+    await modalComponents.applyPrompt();
     await chatPage.verifyChosenPrompt('Test Cases Generator');
     await chatPage.verifySettingsOpenPromptModal();
-    await chatPage.changePromptModalVariable(0,'The project is an online learning platform aimed at delivering interactive courses to users.' +
+    await modalComponents.changePromptModalVariable(0,'The project is an online learning platform aimed at delivering interactive courses to users.' +
       'It features user registration, course management, progress tracking, and certificate generation.');
-    await chatPage.applyPrompt();
-    await chatPage.verifyPromptModalClosed();
+    await modalComponents.applyPrompt();
+    await modalComponents.verifyPromptModalClosed();
     await chatPage.verifyChosenPrompt('Test Cases Generator');
   });
 
   test('Verify user can choose prompt and receive result', async ({ page }) => {
     const chatPage = new ChatPage(page);
+    const modalComponents = new ModalComponents(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
     await chatPage.chooseAutocompleteOption('Test Cases Generator');
-    await chatPage.applyPrompt();
+    await modalComponents.applyPrompt();
     await expect(chatPage.sendButton).toBeDisabled();
     await chatPage.sendMessage('start');
     await chatPage.verifyChatPromptResultExists(2);
@@ -110,28 +113,29 @@ test.describe('UI tests', () => {
 
   test('Verify prompt versioning', async ({ page }) => {
     const chatPage = new ChatPage(page);
+    const modalComponents = new ModalComponents(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
     await chatPage.chooseAutocompleteOption('Calculation');
-    await chatPage.checkPromptModalComponents('Calculation');
-    await chatPage.verifyDisplayedVersion('latest');
-    await chatPage.chooseVersion('1.1');
-    await chatPage.verifyDisplayedVersion('1.1');
-    await chatPage.verifyPromptModalVariableName(0, 'a');
-    await chatPage.verifyPromptModalVariableName(1, 'b');
-    await chatPage.changePromptModalVariable(0,'10');
-    await chatPage.changePromptModalVariable(1,'5');
-    await chatPage.applyPrompt();
+    await modalComponents.checkPromptModalComponents('Calculation');
+    await modalComponents.verifyDisplayedVersion('latest');
+    await modalComponents.chooseVersion('1.1');
+    await modalComponents.verifyDisplayedVersion('1.1');
+    await modalComponents.verifyPromptModalVariableName(0, 'a');
+    await modalComponents.verifyPromptModalVariableName(1, 'b');
+    await modalComponents.changePromptModalVariable(0,'10');
+    await modalComponents.changePromptModalVariable(1,'5');
+    await modalComponents.applyPrompt();
     await chatPage.sendMessage('result is?');
     await chatPage.verifyChatPromptResultContent(2, '15');
     await chatPage.promptSettings.click();
-    await chatPage.chooseVersion('2.1');
-    await chatPage.verifyDisplayedVersion('2.1');
-    await chatPage.verifyPromptModalVariableName(0, 'c');
-    await chatPage.verifyPromptModalVariableName(1, 'd');
-    await chatPage.changePromptModalVariable(0,'10');
-    await chatPage.changePromptModalVariable(1,'5');
-    await chatPage.applyPrompt();
+    await modalComponents.chooseVersion('2.1');
+    await modalComponents.verifyDisplayedVersion('2.1');
+    await modalComponents.verifyPromptModalVariableName(0, 'c');
+    await modalComponents.verifyPromptModalVariableName(1, 'd');
+    await modalComponents.changePromptModalVariable(0,'10');
+    await modalComponents.changePromptModalVariable(1,'5');
+    await modalComponents.applyPrompt();
     await chatPage.messageField.click();
     await chatPage.sendMessage('result is?');
     await chatPage.verifyChatPromptResultContent(4, '5');

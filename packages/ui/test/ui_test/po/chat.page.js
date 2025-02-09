@@ -1,27 +1,20 @@
 import { expect } from '@playwright/test';
 import path from 'path';
+import ModalComponents from './modal.components';
 
 export default class ChatPage {
   constructor(page) {
     this.page = page;
+    this.modalComponents = new ModalComponents(this.page);
     this.messageField = page.locator('textarea#standard-multiline-static');
     this.sendButton = page.locator('button[data-testid="SendButton"]');
     this.chatArea = page.locator('.MuiList-root');
     this.chatAreaUserMessage = page.locator('ul li:nth-child(1)>div:nth-child(2)');
     this.chatAreaAnswer = page.locator('.MuiList-root > li:nth-child(2) > div:nth-child(2) span');
-    
     this.refreshButton = page.locator('[data-testid="RefreshOutlinedIcon"]');
     this.scrollDownArrow = page.locator('[data-testid="KeyboardDoubleArrowDownOutlinedIcon"]');
     this.cleanChatButton = page.locator('[data-testid="ClearTheChatButton"]');
     this.chatCommandAutocomplete = page.locator('div.MuiPaper-root ul');
-
-    this.promptModalHeader = page.locator('#alert-dialog-title:nth-child(1)');
-    this.promptModalVersion = page.locator('#simple-select-undefined');
-    this.promptModalVersionList = page.locator('ul[role="listbox"]');
-    this.promptModalVariablesHeader = page.locator('#alert-dialog-title:nth-child(3)');
-    this.promptModalVariable = page.locator('.MuiDialogContent-root .MuiInputBase-root textarea[aria-invalid="false"]');
-    this.promptModalOkBtn = page.locator('button.MuiButton-root[type="button"]')
-
     this.promptSettings = page.locator('[data-testid="SettingsButton"]');
     this.chosenPromptName = page.locator('//button[@data-testid="SettingsButton"]/preceding-sibling::span');
     this.serverError = page.locator('#webpack-dev-server-client-overlay');
@@ -63,22 +56,6 @@ export default class ChatPage {
     await optionLocator.click();
   }
 
-  async checkPromptModalComponents(headerName) {
-    await this.promptModalHeader.waitFor();
-    await expect(this.promptModalHeader).toHaveText(headerName);
-    await expect(this.promptModalVariablesHeader).toHaveText('Variables');
-    await expect(this.promptModalVariable.nth(0)).toBeVisible();
-  }
-
-  async changePromptModalVariable(index, inputText) {
-    await this.promptModalVariable.nth(index).fill('');
-    await this.promptModalVariable.nth(index).fill(inputText);
-  }
-
-  async applyPrompt() {
-    await this.promptModalOkBtn.click();
-  }
-
   async verifyChosenPrompt(promptName) {
     await expect(this.promptSettings).toBeVisible();
     await expect(this.chosenPromptName).toHaveText(promptName);
@@ -86,12 +63,8 @@ export default class ChatPage {
 
   async verifySettingsOpenPromptModal() {
     await this.promptSettings.click();
-    await this.promptModalHeader.waitFor();
-    await expect(this.promptModalHeader).toBeVisible();
-  }
-
-  async verifyPromptModalClosed() {
-    await expect(this.promptModalHeader).not.toBeVisible();
+    await this.modalComponents.promptModalHeader.waitFor();
+    await expect(this.modalComponents.promptModalHeader).toBeVisible();
   }
 
   async sendMessage(text) {
@@ -167,21 +140,6 @@ export default class ChatPage {
   async clickCleanChatBtn() {
     await this.chatAreaAnswer.waitFor();
     await this.cleanChatButton.click();
-  }
-
-  async verifyDisplayedVersion(versionName) {
-    await expect(this.promptModalVersion).toHaveText(versionName);
-  }
-
-  async chooseVersion(versionName) {
-    const versionLocator = this.promptModalVersionList.locator(`li >> text=${versionName}`);
-    await this.promptModalVersion.click();
-    await versionLocator.waitFor();
-    await versionLocator.click();
-  }
-
-  async verifyPromptModalVariableName(index, variable) {
-    await expect(this.promptModalVariable.nth(index)).toHaveAttribute('id', variable);
   }
 
   async verifyChatPromptResultContent(index, resultText) {
