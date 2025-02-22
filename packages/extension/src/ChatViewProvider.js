@@ -216,7 +216,7 @@ class ChatViewProvider {
           href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" />
         <base target="_top" href="/">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Alita Code Chat</title>
+        <title>Elitea Code Chat</title>
         <script> window.__webview_public_path__ = "${publicPath}"</script>
         <link rel="stylesheet" href="${styleIndexUri}">
         <link rel="stylesheet" href="${styleMainUri}">
@@ -229,7 +229,7 @@ class ChatViewProvider {
   }
 }
 
-ChatViewProvider.viewType = 'alitacodechat.view';
-ChatViewProvider.toWebView = 'alitacodechat.toWebView';
+ChatViewProvider.viewType = 'eliteacodechat.view';
+ChatViewProvider.toWebView = 'eliteacodechat.toWebView';
 
 module.exports = ChatViewProvider;

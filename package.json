@@ -15,6 +15,7 @@
     "Other"
   ],
   "keywords": [
+    "elitea",
     "alita",
     "codechat",
     "openai",
@@ -39,24 +40,24 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "alitacode",
-          "title": "Alita Code",
+          "id": "eliteacode",
+          "title": "Elitea Code",
           "icon": "static/icon.png"
         }
       ]
     },
     "views": {
-      "alitacode": [
+      "eliteacode": [
         {
           "type": "webview",
-          "id": "alitacodechat.view",
+          "id": "eliteacodechat.view",
           "name": "Chat"
         }
       ]
     },
     "commands": [
       {
-        "command": "alitacodechat.helloWorld",
+        "command": "eliteacodechat.helloWorld",
         "title": "Hello World"
       }
     ]

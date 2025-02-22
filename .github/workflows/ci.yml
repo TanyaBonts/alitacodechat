@@ -28,15 +28,15 @@ jobs:
     - name: Set environment variables
       run: |
         if [ "${{ matrix.environment }}" == "AI" ]; then
-          echo "SERVER_HOST=${{ secrets.SERVER_HOST_AI }}" >> $GITHUB_ENV
-          echo "SERVER_PID=${{ secrets.SERVER_PID_AI }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.SERVER_HOST_AI }}" >> $GITHUB_ENV
+          echo "SERVER_PID=${{ vars.SERVER_PID_AI }}" >> $GITHUB_ENV
           echo "SERVER_TOKEN=${{ secrets.SERVER_TOKEN_AI }}" >> $GITHUB_ENV
         elif [ "${{ matrix.environment }}" == "MAIN" ]; then
-          echo "SERVER_HOST=${{ secrets.SERVER_HOST_MAIN }}" >> $GITHUB_ENV
-          echo "SERVER_PID=${{ secrets.SERVER_PID_MAIN }}" >> $GITHUB_ENV
+          echo "SERVER_HOST=${{ vars.SERVER_HOST_MAIN }}" >> $GITHUB_ENV
+          echo "SERVER_PID=${{ vars.SERVER_PID_MAIN }}" >> $GITHUB_ENV
           echo "SERVER_TOKEN=${{ secrets.SERVER_TOKEN_MAIN }}" >> $GITHUB_ENV
         fi
-        echo "SERVER_UID=${{ secrets.SERVER_UID }}" >> $GITHUB_ENV
+        echo "SERVER_UID=${{ vars.SERVER_UID }}" >> $GITHUB_ENV
     - name: Start server
       run: |
         cd packages/ui/test/plugin

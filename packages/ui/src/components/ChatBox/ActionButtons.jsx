@@ -19,7 +19,7 @@ export default function ActionButtons({
             <StopCircleOutlinedIcon sx={{ fontSize: '1.13rem' }} color="icon" />
           </ActionButton>
         </StyledTooltip>}
-      <StyledTooltip title={'Reload Alita Code settings, prompt and datasource options'} placement="top">
+      <StyledTooltip title={'Reload Elitea Code settings, prompt and datasource options'} placement="top">
         <ActionButton onClick={onRefresh}>
           <RefreshOutlinedIcon sx={{ fontSize: '1.13rem' }} color="icon" />
         </ActionButton>

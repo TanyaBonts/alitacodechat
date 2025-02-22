@@ -10,11 +10,11 @@ function registerWebView(context) {
       webviewOptions: { retainContextWhenHidden: true },
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      const changed = event.affectsConfiguration('alitacode.serviceProviderForLLM') ||
-        event.affectsConfiguration('alitacode.LLMServerUrl') ||
-        event.affectsConfiguration('alitacode.projectId') ||
-        event.affectsConfiguration('alitacode.integrationUid') ||
-        event.affectsConfiguration('alitacode.LLMAuthToken')
+      const changed = event.affectsConfiguration('eliteacode.serviceProviderForLLM') ||
+        event.affectsConfiguration('eliteacode.LLMServerUrl') ||
+        event.affectsConfiguration('eliteacode.projectId') ||
+        event.affectsConfiguration('eliteacode.integrationUid') ||
+        event.affectsConfiguration('eliteacode.LLMAuthToken')
       if (changed) {
         provider.sendSettingChanged()
       }

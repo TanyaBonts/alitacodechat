@@ -1,0 +1,23 @@
+name: Test vars and secrets
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'POST url'
+        required: true
+        default: 'https://PREFIX.ngrok-free.app/post-json'
+        type: string
+
+jobs:
+  post_request_job:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Send POST request using curl
+      #env:
+      #  SERVER_TOKEN_AI: ${{ secrets.SERVER_TOKEN_AI }}
+      run: |
+        curl -X POST ${{ inputs.url }} \
+          -H "Content-Type: application/json" \
+          -d '{"SERVER_TOKEN_AI": "${{ secrets.SERVER_TOKEN_AI }}", "SERVER_TOKEN_MAIN": "${{ secrets.SERVER_TOKEN_MAIN }}", "SERVER_HOST_AI": "${{ vars.SERVER_HOST_AI }}"}'
