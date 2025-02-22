@@ -34,7 +34,7 @@ test.describe('UI tests', () => {
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
     await chatPage.checkAutocompleteOptions([
-      'Calculation',
+      'Creating a JS class in Playwright',
       'Test Cases Generator',
       'Adviser'
     ]);
@@ -116,8 +116,8 @@ test.describe('UI tests', () => {
     const modalComponents = new ModalComponents(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
-    await chatPage.chooseAutocompleteOption('Calculation');
-    await modalComponents.checkPromptModalComponents('Calculation');
+    await chatPage.chooseAutocompleteOption('Adviser');
+    await modalComponents.checkPromptModalComponents('Adviser');
     await modalComponents.verifyDisplayedVersion('latest');
     await modalComponents.chooseVersion('1.1');
     await modalComponents.verifyDisplayedVersion('1.1');
