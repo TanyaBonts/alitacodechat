@@ -112,6 +112,7 @@ export const DataProvider = ({ children }) => {
       switch (message.type) {
         case UiMessageTypes.stopApplicationTask:
         case UiMessageTypes.stopDatasourceTask:
+        case UiMessageTypes.copyMessageToClipboard:
         case UiMessageTypes.getSelectedText:
           if (messagePromises[message.id]) {
             messagePromises[message.id].resolve(message.data);
