@@ -33,6 +33,18 @@ export default (env, argv) => {
         {
           test: /\.css$/,
           use: ["style-loader", "css-loader"]
+        },
+        {
+          test: /\.svg$/,
+          oneOf: [
+            {
+              resourceQuery: /react/, // *.svg?react
+              use: ['@svgr/webpack'],
+            },
+            {
+              use: ['file-loader'],
+            },
+          ],
         }
       ]
     },

@@ -190,7 +190,7 @@ const ChatBox = forwardRef(({
   const participantRef = useRef(participant);
   const chatWithRef = useRef(chatWith);
   
-  const { interaction_uuid } = useInteractionUUID();
+  const { interaction_uuid, setInteractionUUID, firstRenderUUID } = useInteractionUUID();
 
   useEffect(() => {
     participantRef.current = participant
@@ -217,7 +217,9 @@ const ChatBox = forwardRef(({
     if (chatHistory.length) {
       onDeleteAll();
     }
-  }, [chatHistory.length, onDeleteAll])
+    firstRenderUUID.current = true;
+    setInteractionUUID('');
+  }, [chatHistory.length, firstRenderUUID, setInteractionUUID])
 
   useImperativeHandle(boxRef, () => ({
     onClear: onClickClearChat,
@@ -585,7 +587,11 @@ const ChatBox = forwardRef(({
             <ActionButtons
               isStreaming={isStreaming}
               onStopAll={onStopAll}
-              onRefresh={loadCoreData}
+              onRefresh={() => {
+                loadCoreData();
+                firstRenderUUID.current = true;
+                setInteractionUUID('');
+              }}
             />
             <ActionButton
               data-testid="ClearTheChatButton"

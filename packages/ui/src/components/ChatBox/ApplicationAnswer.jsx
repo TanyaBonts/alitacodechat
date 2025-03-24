@@ -1,7 +1,7 @@
 import React, {useState, useCallback} from 'react';
 import { Box, Typography } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
-import Markdown from '../Markdown';
+import Markdown, {MarkdownProvider} from '../Markdown';
 import CopyIcon from '../Icons/CopyIcon';
 import DeleteIcon from '../Icons/DeleteIcon';
 import RegenerateIcon from '../Icons/RegenerateIcon';
@@ -151,9 +151,11 @@ const ApplicationAnswer = React.forwardRef((props, ref) => {
               </StyledTooltip>
             }
           </ButtonsContainer>}
-          <Markdown interaction_uuid={interaction_uuid}>
-            {!exception ? answer : 'Agent exception!'}
-          </Markdown>
+          <MarkdownProvider interaction_uuid={interaction_uuid}>
+            <Markdown>
+              {!exception ? answer : 'Agent exception: ```text\n' + exception + '\n```'}
+            </Markdown>
+          </MarkdownProvider>
           {isLoading && <AnimatedProgress
             sx={{
               fontWeight: "400",
