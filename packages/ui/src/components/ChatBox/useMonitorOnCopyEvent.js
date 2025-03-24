@@ -4,23 +4,25 @@ import DataContext from "@/context/DataContext.jsx";
 
 
 export const useInteractionUUID = () => {
-  const firstRender = useRef(true)
+  const firstRenderUUID = useRef(true)
   const [interaction_uuid, setInteractionUUID] = useState('')
 
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
+    if (firstRenderUUID.current) {
+      firstRenderUUID.current = false;
       if (!interaction_uuid) {
         setInteractionUUID(uuidv4())
       }
     }
   }, [interaction_uuid])
   return {
-    interaction_uuid
+    interaction_uuid,
+    setInteractionUUID,
+    firstRenderUUID
   }
 }
 
-export default function useMonitorOnCopyEvent({ interaction_uuid, onCopy }) {
+export default function useMonitorOnCopyEvent({ interaction_uuid, onCopy, onDownload }) {
   const { providerConfig } = useContext(DataContext);
 
   const onMonitorCopy = useCallback(
@@ -46,9 +48,20 @@ export default function useMonitorOnCopyEvent({ interaction_uuid, onCopy }) {
     },
     [onCopy, onMonitorCopy],
   )
-
+  
+  const onClickDownload = useCallback(
+    (params) => {
+      onDownload && onDownload(params)
+      if (interaction_uuid) {
+        onMonitorCopy(null, 'download')
+      }
+    },
+    [interaction_uuid, onDownload, onMonitorCopy],
+  )
+  
   return {
     onMonitorCopy,
-    onClickCopy
+    onClickCopy,
+    onClickDownload
   }
 }

@@ -14,6 +14,7 @@
     "@mui/icons-material": "^5.14.13",
     "@mui/material": "^5.14.13",
     "@rollup/plugin-inject": "^5.0.5",
+    "excellentexport": "^3.9.9",
     "marked": "^12.0.1",
     "mui-markdown": "^1.1.11",
     "prism-react-renderer": "^2.3.1",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@babel/preset-react": "^7.24.1",
+    "@svgr/webpack": "^8.1.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.2.1",
