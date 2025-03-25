@@ -72,7 +72,7 @@ app.get('/', async (req, res) => {
                 data = (await getData(`datasources/datasources/prompt_lib/${projectId}`)).rows;
                 break;
             case 'extension.getApplications':
-                data = (await getData(`applications/applications/prompt_lib/${projectId}`)).rows;
+                data = (await getData(`applications/applications/prompt_lib/${projectId}?offset=0&limit=1000`)).rows;
                 break;
             case 'extension.getPromptDetail':
                 data = (await getData(`prompt_lib/prompt/prompt_lib/${projectId}/${chatData}`));
@@ -87,6 +87,9 @@ app.get('/', async (req, res) => {
                 data = (await getData(`integrations/integrations/default/${projectId}`));
                 break;
             case 'extension.copyCodeToEditor':
+                data = '';
+                break;
+            case 'extension.copyMessageToClipboard':
                 data = '';
                 break;
             default:

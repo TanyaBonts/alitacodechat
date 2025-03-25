@@ -176,7 +176,8 @@ const ChatBox = forwardRef(({
     chatHistory = [],
     setChatHistory = () => { },
     loadCoreData,
-    deployments
+    deployments,
+    sendMessage
   } = useContext(DataContext);
   const chatInput = useRef(null);
   const listRefs = useRef([]);
@@ -561,20 +562,19 @@ const ChatBox = forwardRef(({
     (id) => async () => {
       const message = chatHistory.find(item => item.id === id);
       if (message) {
-        if (message.exception) {
-          try {
-            await navigator.clipboard.writeText(JSON.stringify(message.exception));
-            toastInfo('The exception has been copied to the clipboard');
-          } catch (e) {
-            toastError('Failed to copy the exception!');
-          }
-        } else {
-          await navigator.clipboard.writeText(message.content);
-          toastInfo('The message has been copied to the clipboard');
+        const clipboardText = message.exception ? JSON.stringify(message.exception) : message.content;
+
+        try {
+          navigator.clipboard
+            ? await navigator.clipboard.writeText(clipboardText)
+            : await sendMessage({ type: VsCodeMessageTypes.copyMessageToClipboard, data: clipboardText });
+          toastInfo(`The ${message.exception ? 'exception' : 'message'} has been copied to the clipboard`);
+        } catch (e) {
+          toastError('Failed to copy to the clipboard!');
         }
       }
     },
-    [chatHistory, toastInfo, toastError],
+    [chatHistory, toastInfo, toastError, sendMessage],
   );
 
   return (

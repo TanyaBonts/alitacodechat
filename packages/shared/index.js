@@ -13,6 +13,7 @@ export const VsCodeMessageTypes = {
   copyCodeToEditor: 'extension.copyCodeToEditor',
   stopDatasourceTask: 'extension.stopDatasourceTask',
   stopApplicationTask: 'extension.stopApplicationTask',
+  copyMessageToClipboard: 'extension.copyMessageToClipboard',
 }
 
 export const UiMessageTypes = {
@@ -36,4 +37,5 @@ export const UiMessageTypes = {
   stopApplicationTask: 'ui.stopApplicationTask',
   getPromptVersionDetail: 'ui.getPromptVersionDetail',
   getApplicationVersionDetail: 'ui.getApplicationVersionDetail',
+  copyMessageToClipboard: 'ui.copyMessageToClipboard',
 }
