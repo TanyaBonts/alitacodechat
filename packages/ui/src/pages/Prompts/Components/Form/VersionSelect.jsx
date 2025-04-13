@@ -13,8 +13,8 @@ export const buildVersionOption = () => ({ name, id = {} }) => {
   }
 }
 
-const VersionSelect = memo(function VersionSelect({ currentVersionName = '', versions = [], onSelectVersion, enableVersionListAvatar = false }) {
-  const currentVersion = useMemo(() => versions.find(item => item.name === currentVersionName)?.id, [currentVersionName, versions]);
+const VersionSelect = memo(function VersionSelect({ currentVersionId = '', versions = [], onSelectVersion, enableVersionListAvatar = false }) {
+  const currentVersion = useMemo(() => versions.find(item => item.id === currentVersionId)?.id, [currentVersionId, versions]);
   const versionSelectOptions = useMemo(() => {
     return versions.map(buildVersionOption(enableVersionListAvatar));
   }, [enableVersionListAvatar, versions]);

@@ -221,10 +221,10 @@ export const DataProvider = ({ children }) => {
 
     switch (type) {
       case UiMessageTypes.getPromptVersionDetail:
-        queryPath = `/prompt_lib/prompt/prompt_lib/${providerConfig.projectId}/${parameters.id}/${parameters.versionName}`;
+        queryPath = `/prompt_lib/version/prompt_lib/${providerConfig.projectId}/${parameters.id}/${parameters.versionId}`;
         break;
       case UiMessageTypes.getApplicationVersionDetail:
-        queryPath = `/applications/application/prompt_lib/${providerConfig.projectId}/${parameters.id}/${parameters.versionName}`;
+        queryPath = `/applications/version/prompt_lib/${providerConfig.projectId}/${parameters.id}/${parameters.versionId}`;
         break;
     }
 

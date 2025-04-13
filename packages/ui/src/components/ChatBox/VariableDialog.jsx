@@ -40,7 +40,7 @@ export function VariableDialog({
       }}>
         <Box sx={{ display: 'flex'}}>
           <VersionSelect
-            currentVersionName={detail.version_details.name}
+            currentVersionId={detail.version_details.id}
             versions={detail.versions}
             onSelectVersion={onChangeVersion}
           />
