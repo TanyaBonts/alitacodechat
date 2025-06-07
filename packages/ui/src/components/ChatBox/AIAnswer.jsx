@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { Box, Typography } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
-import { styled, useTheme } from '@mui/material/styles';
-import Markdown from '../Markdown';
+import { useTheme } from '@mui/material/styles';
+import Markdown, {MarkdownProvider} from '../Markdown';
 import CopyIcon from '../Icons/CopyIcon';
 import DeleteIcon from '../Icons/DeleteIcon';
 import RegenerateIcon from '../Icons/RegenerateIcon';
@@ -118,6 +118,7 @@ const AIAnswer = React.forwardRef((props, ref) => {
     participant,
     created_at,
     interaction_uuid,
+    exception,
   } = props
   const theme = useTheme();
   const [showActions, setShowActions] = useState(false);
@@ -217,9 +218,11 @@ const AIAnswer = React.forwardRef((props, ref) => {
             </StyledTooltip>
           }
         </ButtonsContainer>}
-        <Markdown interaction_uuid={interaction_uuid}>
-          {answer}
-        </Markdown>
+        <MarkdownProvider interaction_uuid={interaction_uuid}>
+          <Markdown>
+            {!exception ? (answer || '') : 'LLM exception: ```text\n' + exception + '\n```'}
+          </Markdown>
+        </MarkdownProvider>
         {isLoading && <AnimatedProgress
           sx={{
             fontWeight: "400",

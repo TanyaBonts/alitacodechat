@@ -9,7 +9,7 @@ import AIAnswer from './AIAnswer';
 import ChatInput from './ChatInput';
 import {
   ActionButton,
-  ActionContainer,
+  ActionContainer, ChatBodyContainer,
   ChatBoxContainer,
   MessageList
 } from './StyledComponents';
@@ -25,6 +25,7 @@ import DataContext from '@/context/DataContext';
 import ApplicationAnswer from './ApplicationAnswer';
 import useToast from "@/components/useToast.jsx";
 import { useInteractionUUID } from "@/components/ChatBox/useMonitorOnCopyEvent.js";
+import {useSelector} from "react-redux";
 
 const USE_STREAM = true
 const MESSAGE_REFERENCE_ROLE = 'reference'
@@ -176,7 +177,10 @@ const ChatBox = forwardRef(({
     chatHistory = [],
     setChatHistory = () => { },
     loadCoreData,
-    deployments
+    deployments,
+    providerConfig,
+    modelSettings,
+    sendMessage
   } = useContext(DataContext);
   const chatInput = useRef(null);
   const listRefs = useRef([]);
@@ -189,8 +193,9 @@ const ChatBox = forwardRef(({
   const [participant, setParticipant] = useState(null);
   const participantRef = useRef(participant);
   const chatWithRef = useRef(chatWith);
+  const mode = useSelector(state => state.settings.mode);
   
-  const { interaction_uuid } = useInteractionUUID();
+  const { interaction_uuid, setInteractionUUID, firstRenderUUID } = useInteractionUUID();
 
   useEffect(() => {
     participantRef.current = participant
@@ -217,7 +222,9 @@ const ChatBox = forwardRef(({
     if (chatHistory.length) {
       onDeleteAll();
     }
-  }, [chatHistory.length, onDeleteAll])
+    firstRenderUUID.current = true;
+    setInteractionUUID('');
+  }, [chatHistory.length, firstRenderUUID, setInteractionUUID])
 
   useImperativeHandle(boxRef, () => ({
     onClear: onClickClearChat,
@@ -559,20 +566,19 @@ const ChatBox = forwardRef(({
     (id) => async () => {
       const message = chatHistory.find(item => item.id === id);
       if (message) {
-        if (message.exception) {
-          try {
-            await navigator.clipboard.writeText(JSON.stringify(message.exception));
-            toastInfo('The exception has been copied to the clipboard');
-          } catch (e) {
-            toastError('Failed to copy the exception!');
-          }
-        } else {
-          await navigator.clipboard.writeText(message.content);
-          toastInfo('The message has been copied to the clipboard');
+        const clipboardText = message.exception ? JSON.stringify(message.exception) : message.content;
+
+        try {
+          navigator.clipboard
+            ? await navigator.clipboard.writeText(clipboardText)
+            : await sendMessage({ type: VsCodeMessageTypes.copyMessageToClipboard, data: clipboardText });
+          toastInfo(`The ${message.exception ? 'exception' : 'message'} has been copied to the clipboard`);
+        } catch (e) {
+          toastError('Failed to copy to the clipboard!');
         }
       }
     },
-    [chatHistory, toastInfo, toastError],
+    [chatHistory, toastInfo, toastError, sendMessage],
   );
 
   return (
@@ -585,7 +591,14 @@ const ChatBox = forwardRef(({
             <ActionButtons
               isStreaming={isStreaming}
               onStopAll={onStopAll}
-              onRefresh={loadCoreData}
+              onRefresh={() => {
+                loadCoreData();
+                firstRenderUUID.current = true;
+                setInteractionUUID('');
+              }}
+              providerConfig={providerConfig ?? {}}
+              modelSettings={modelSettings}
+              mode={mode}
             />
             <ActionButton
               data-testid="ClearTheChatButton"
@@ -597,60 +610,62 @@ const ChatBox = forwardRef(({
             </ActionButton>
           </Box>
         </ActionContainer>
-        <MessageList sx={messageListSX}>
-          {
-            chatHistory.map((message, index) => {
-              if (!message.created_at) {
-                message.created_at = new Date()
-              }
-              return message.role === 'user' ?
-                <UserMessage
-                  key={message.id}
-                  ref={(ref) => (listRefs.current[index] = ref)}
-                  content={message.content}
-                  onCopy={onCopyToClipboard(message.id)}
-                  onDelete={onDeleteAnswer(message.id)}
-                  created_at={message.created_at}
-                />
-                :
-                message.participant?.type !== ChatTypes.application ?
-                  <AIAnswer
+        <ChatBodyContainer>
+          <MessageList sx={messageListSX}>
+            {
+              chatHistory.map((message, index) => {
+                if (!message.created_at) {
+                  message.created_at = new Date()
+                }
+                return message.role === 'user' ?
+                  <UserMessage
                     key={message.id}
                     ref={(ref) => (listRefs.current[index] = ref)}
-                    answer={message.content}
-                    participant={message.participant}
-                    onStop={onStopStreaming(message)}
+                    content={message.content}
                     onCopy={onCopyToClipboard(message.id)}
                     onDelete={onDeleteAnswer(message.id)}
-                    shouldDisableRegenerate={isLoading || isStreaming || Boolean(message.isLoading)}
-                    references={message.references}
-                    isLoading={Boolean(message.isLoading)}
-                    isStreaming={message.isStreaming}
                     created_at={message.created_at}
-                    interaction_uuid={interaction_uuid}
                   />
                   :
-                  <ApplicationAnswer
-                    key={message.id}
-                    ref={(ref) => (listRefs.current[index] = ref)}
-                    answer={message.content}
-                    participant={message.participant}
-                    onStop={onStopStreaming(message)}
-                    onCopy={onCopyToClipboard(message.id)}
-                    onDelete={onDeleteAnswer(message.id)}
-                    shouldDisableRegenerate={isLoading || isStreaming || Boolean(message.isLoading)}
-                    references={message.references}
-                    exception={message.exception}
-                    toolActions={message.toolActions || []}
-                    isLoading={Boolean(message.isLoading)}
-                    isStreaming={message.isStreaming}
-                    created_at={message.created_at}
-                    interaction_uuid={interaction_uuid}
-                  />
-            })
-          }
-          <div ref={messagesEndRef} />
-        </MessageList>
+                  message.participant?.type !== ChatTypes.application ?
+                    <AIAnswer
+                      key={message.id}
+                      ref={(ref) => (listRefs.current[index] = ref)}
+                      answer={message.content}
+                      participant={message.participant}
+                      onStop={onStopStreaming(message)}
+                      onCopy={onCopyToClipboard(message.id)}
+                      onDelete={onDeleteAnswer(message.id)}
+                      shouldDisableRegenerate={isLoading || isStreaming || Boolean(message.isLoading)}
+                      references={message.references}
+                      isLoading={Boolean(message.isLoading)}
+                      isStreaming={message.isStreaming}
+                      created_at={message.created_at}
+                      interaction_uuid={interaction_uuid}
+                    />
+                    :
+                    <ApplicationAnswer
+                      key={message.id}
+                      ref={(ref) => (listRefs.current[index] = ref)}
+                      answer={message.content}
+                      participant={message.participant}
+                      onStop={onStopStreaming(message)}
+                      onCopy={onCopyToClipboard(message.id)}
+                      onDelete={onDeleteAnswer(message.id)}
+                      shouldDisableRegenerate={isLoading || isStreaming || Boolean(message.isLoading)}
+                      references={message.references}
+                      exception={message.exception}
+                      toolActions={message.toolActions || []}
+                      isLoading={Boolean(message.isLoading)}
+                      isStreaming={message.isStreaming}
+                      created_at={message.created_at}
+                      interaction_uuid={interaction_uuid}
+                    />
+              })
+            }
+            <div ref={messagesEndRef} />
+          </MessageList>
+        </ChatBodyContainer>
         <ChatInput
           onSend={onSend}
           ref={chatInput}

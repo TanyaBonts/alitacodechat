@@ -126,8 +126,8 @@ const ChatInput = forwardRef(function ChatInput(props, ref) {
     callProvider({
       type: chatWith === ChatTypes.prompt ? UiMessageTypes.getPromptVersionDetail : UiMessageTypes.getApplicationVersionDetail, 
       parameters: {
-        id: participantDetail.id, 
-        versionName: participantDetail.versions.find(item => item.id === versionId).name
+        id: participantDetail.id,
+        versionId
       }
     });
   }, [chatWith, participantDetail, callProvider])
@@ -172,10 +172,10 @@ const ChatInput = forwardRef(function ChatInput(props, ref) {
           setParticipantDetail(detail);
           break;
         case UiMessageTypes.getPromptVersionDetail:
-          setParticipantDetail(detail);
+          setParticipantDetail(prev => ({...prev, version_details: detail}));
           break;
         case UiMessageTypes.getApplicationVersionDetail:
-          setParticipantDetail(detail);
+          setParticipantDetail(prev => ({...prev, version_details: detail}));
           break;
       }
     }
