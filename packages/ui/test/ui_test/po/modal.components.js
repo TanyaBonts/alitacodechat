@@ -1,5 +1,4 @@
 import { expect } from '@playwright/test';
-import path from 'path';
 
 export default class ModalComponents {
   constructor(page) {
