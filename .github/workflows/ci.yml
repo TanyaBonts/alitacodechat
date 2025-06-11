@@ -37,6 +37,7 @@ jobs:
           echo "SERVER_PID=${{ vars.SERVER_PID_NEX }}" >> $GITHUB_ENV
           echo "SERVER_UID=${{ vars.SERVER_UID_NEX }}" >> $GITHUB_ENV
           echo "SERVER_TOKEN=${{ secrets.SERVER_TOKEN_NEX }}" >> $GITHUB_ENV
+        fi
     - name: Start server
       run: |
         cd packages/ui/test/plugin
