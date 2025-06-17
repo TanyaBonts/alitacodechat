@@ -29,30 +29,30 @@ test.describe('UI tests', () => {
     await chatPage.verifyErrorIsNotDisplayed();
   });
 
-  test('Verify that the list of prompts matches the prompts from https://eye.projectalita.ai/', async ({ page }) => {
+  test('Verify that the prompt list in the plugin matches the prompt list from the main project', async ({ page }) => {
     const chatPage = new ChatPage(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
     await chatPage.checkAutocompleteOptions([
-      'Creating a JS class in Playwright',
+      'Simple Calculator',
       'Test Cases Generator',
       'Adviser'
     ]);
   });
 
-  test('Verify that the list of datasources matches the datasources from https://eye.projectalita.ai/', async ({ page }) => {
+  test('Verify that the datasources list in the plugin matches the datasources list from the main project', async ({ page }) => {
     const chatPage = new ChatPage(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('#');
     await chatPage.checkAutocompleteOptions([
+      'Enhance Test Cases',
       'Create locator',
       'Git Repo Assistant',
-      'Reskill to JS assistant',
-      'Datasource Info - Confluence - Contribution activities'
+      'Reskill to JS assistant'
     ]);
   });
 
-  test('Verify that the list of agents matches the agents from https://eye.projectalita.ai/', async ({ page }) => {
+  test('Verify that the agents list in the plugin matches the agents list from the main project', async ({ page }) => {
     const chatPage = new ChatPage(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('@');
@@ -116,8 +116,8 @@ test.describe('UI tests', () => {
     const modalComponents = new ModalComponents(page);
     await chatPage.openChat();
     await chatPage.typeInMessageField('/');
-    await chatPage.chooseAutocompleteOption('Adviser');
-    await modalComponents.checkPromptModalComponents('Adviser');
+    await chatPage.chooseAutocompleteOption('Simple Calculator');
+    await modalComponents.checkPromptModalComponents('Simple Calculator');
     await modalComponents.verifyDisplayedVersion('latest');
     await modalComponents.chooseVersion('1.1');
     await modalComponents.verifyDisplayedVersion('1.1');
