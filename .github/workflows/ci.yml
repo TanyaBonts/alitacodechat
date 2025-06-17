@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        environment: ["Stage", "Nexus"]
+        environment: ["Dev", "Stage", "Nexus"]
           
     steps:
     - uses: actions/checkout@v4
@@ -27,7 +27,12 @@ jobs:
         npm install
     - name: Set environment variables
       run: |
-        if [ "${{ matrix.environment }}" == "Stage" ]; then
+        if [ "${{ matrix.environment }}" == "Dev" ]; then
+          echo "SERVER_HOST=${{ vars.SERVER_HOST_DEV }}" >> $GITHUB_ENV
+          echo "SERVER_PID=${{ vars.SERVER_PID_DEV }}" >> $GITHUB_ENV
+          echo "SERVER_UID=${{ vars.SERVER_UID_DEV }}" >> $GITHUB_ENV
+          echo "SERVER_TOKEN=${{ secrets.SERVER_TOKEN_DEV }}" >> $GITHUB_ENV
+        elif [ "${{ matrix.environment }}" == "Stage" ]; then
           echo "SERVER_HOST=${{ vars.SERVER_HOST_ST }}" >> $GITHUB_ENV
           echo "SERVER_PID=${{ vars.SERVER_PID_ST }}" >> $GITHUB_ENV
           echo "SERVER_UID=${{ vars.SERVER_UID_ST }}" >> $GITHUB_ENV
