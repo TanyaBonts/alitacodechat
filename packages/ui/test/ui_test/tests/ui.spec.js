@@ -140,4 +140,73 @@ test.describe('UI tests', () => {
     await chatPage.sendMessage('result is?');
     await chatPage.verifyChatPromptResultContent(4, '5');
   });
+
+//   test.only('Verify selected text is sent in system message', async ({ page }) => {
+//  await page.addInitScript(() => {
+//     window.__sentMessages = [];
+//   });
+
+//   // Подключаемся к WebSocket и слушаем framesent
+//   page.on('websocket', ws => {
+//     console.log('[WS] Opened:', ws.url());
+
+//     ws.on('framesent', async ({ payload }) => {
+//       console.log('[WS] Raw frame sent:', payload);
+
+//       if (typeof payload !== 'string' || !payload.startsWith('42')) return;
+
+//       try {
+//         const cleaned = payload.slice(2);
+//         const data = JSON.parse(cleaned);
+//         console.log('[WS] Parsed data:', data);
+
+//         if (Array.isArray(data) && data[0] === 'promptlib_predict') {
+//           const message = data[1];
+//           console.log('[WS] → Matched promptlib_predict:', message);
+//           await page.evaluate(m => window.__sentMessages.push(m), message);
+//         }
+//       } catch (e) {
+//         console.log('[WS] Failed to parse payload:', payload);
+//       }
+//     });
+//   });
+
+//   const chatPage = new ChatPage(page);
+//   await chatPage.openChat();
+//   console.log('[TEST] Chat opened');
+
+//   // 🛠️ Мокаем sendMessage ПОСЛЕ загрузки страницы
+//   await page.evaluate(() => {
+//     console.log('[MOCK] Overriding sendMessage in page context');
+//     window.dataContext = {
+//       ...window.dataContext,
+//       sendMessage: ({ type }) => {
+//         console.log('[MOCK] sendMessage called with type:', type);
+//         if (type === 'ui.getSelectedText') {
+//           return Promise.resolve('This is mocked selected text');
+//         }
+//         return Promise.resolve('');
+//       },
+//     };
+//   });
+
+//   // Отправляем сообщение
+//   await chatPage.sendMessage('hello');
+//   console.log('[TEST] Message sent');
+
+//   // Ждём появления сообщения в __sentMessages
+//   await page.waitForFunction(() => window.__sentMessages.length > 0, null, { timeout: 5000 });
+
+//   const messages = await page.evaluate(() => window.__sentMessages);
+//   console.log('[TEST] Captured messages:', messages);
+
+//   const [target] = messages;
+
+//   expect(target).toBeTruthy();
+//   expect(target.messages[0]).toEqual({
+//     role: 'system',
+//     content: 'This is mocked selected text',
+//   });
+// });
+
 });
